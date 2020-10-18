@@ -8,3 +8,7 @@
 2. Cheerio
 3. Fs
 
+## How To Run
+1. `npm install`
+2. `node index.js`
+
