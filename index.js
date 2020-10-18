@@ -3,6 +3,8 @@ const cheerio = require('cheerio');
 const fs = require('fs');
 
 const URL = 'https://www.detik.com/terpopuler/news?utm_source=detiknews&utm_medium=desktop&_ga=2.23191481.2037223770.1602988903-174572001.1602988903';
+let arrToJson = [];
+let objectToJson = new Object();
 
 (async ()=>{
 	try{
@@ -37,9 +39,25 @@ const URL = 'https://www.detik.com/terpopuler/news?utm_source=detiknews&utm_medi
 
 				}).get();
 
+				const relateNewsLink = $('.list-content__title').map((i, section)=>{
+					const link =  $(section).find('a');
+					return link.attr('href');
+
+				}).get();
+
+				const relateNewsTitle = $('.list-content__title').map((i, section)=>{
+					const title = $(section).find('a');
+					return title.text();
+
+				}).get();
+
+				// console.log(relateNewsTitle)
+
 				return {
 					newsAuthor,
-					releaseDate
+					releaseDate,
+					relateNewsLink,
+					relateNewsTitle
 				}
 
 			} catch(err) {
@@ -49,18 +67,41 @@ const URL = 'https://www.detik.com/terpopuler/news?utm_source=detiknews&utm_medi
 
 		data.forEach((val, index)=>{
 			let object = new Object();
+			let arr = []
 
 			const author = val.newsAuthor;
 			const date = val.releaseDate;
+			const relateNewsTitle = val.relateNewsTitle;
+			const relateNewsLink = val.relateNewsLink;
+
+			relateNewsTitle.forEach((val, index)=>{
+				let object = new Object();
+
+				object.newsTitle = val
+				object.newsLink = relateNewsLink[index]
+
+				arr.push(object)
+			});
 
 			object.newsTitle = newsTitle[index];
 			object.author = author[0];
 			object.newsLink = newsLink[index];
+			object.relateNews = arr;
 
-			console.log(object)
+			arrToJson.push(object);
 			
+		});
 
-		})
+		objectToJson.news = arrToJson;
+		const saveToJson = JSON.stringify(objectToJson, null, 4);
+		
+		fs.writeFile('result.json', saveToJson, 'utf8', (err)=>{
+			if(err) {
+				console.log(err);
+			} else {
+				console.log('scraping done')
+			};
+		});
 
 	} catch (err) {
 		console.log(err);
